@@ -9,39 +9,27 @@ namespace Hostnet\Component\EntityMutation\Functional\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Hostnet\Component\EntityMutation\Mutation;
+use Hostnet\Component\EntityMutation\Attributes\Mutation;
 use Hostnet\Component\EntityMutation\MutationAwareInterface;
 
-/**
- * @ORM\Entity()
- * @Mutation(strategy="current")
- */
+#[ORM\Entity]
+#[Mutation(strategy: Mutation::STRATEGY_COPY_CURRENT)]
 class Client implements MutationAwareInterface
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     *
-     * @var int
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private int $id;
 
-    /**
-     * @ORM\Embedded(class="ContactInfo")
-     *
-     * @var ContactInfo
-     */
-    private $contact_info;
+    #[ORM\Embedded(class: ContactInfo::class)]
+    private ContactInfo $contact_info;
 
     /**
      * The history of this object.
-     *
-     * @ORM\OneToMany(targetEntity="ClientMutation", mappedBy="client")
-     * @ORM\OrderBy(value={"id"="DESC"})
-     * @var Collection
      */
-    private $mutations;
+    #[ORM\OneToMany(targetEntity: ClientMutation::class, mappedBy: 'client')]
+    #[ORM\OrderBy(['id' => 'DESC'])]
+    private Collection $mutations;
 
     /**
      * @param ContactInfo $contact_info

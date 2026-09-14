@@ -8,26 +8,12 @@ namespace Hostnet\Component\EntityMutation\Resolver;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Hostnet\Component\EntityMutation\Attributes\Mutation;
-use Hostnet\Component\EntityMutation\Mutation as MutationAnnotation;
 use Hostnet\Component\EntityTracker\Provider\EntityMetadataProvider;
 
 class MutationResolver implements MutationResolverInterface
 {
-    /**
-     * @var string
-     */
-    private $annotation = MutationAnnotation::class;
-
     public function __construct(private EntityMetadataProvider $provider)
     {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getMutationAnnotation(EntityManagerInterface $em, $entity): ?MutationAnnotation
-    {
-        return $this->provider->getAnnotationFromEntity($em, $entity, $this->annotation);
     }
 
     public function getMutationAttribute(EntityManagerInterface $em, $entity): ?Mutation
@@ -40,13 +26,7 @@ class MutationResolver implements MutationResolverInterface
      */
     public function getMutationClassName(EntityManagerInterface $em, $entity): string
     {
-        $annotation = $this->getMutationAnnotation($em, $entity);
-        // If $annotation is null, we must be using the attribute, otherwise this code would not get hit.
-        if (null === $annotation) {
-            return get_class($entity) . 'Mutation';
-        }
-
-        return !empty($annotation->class) ? $annotation->class : get_class($entity) . 'Mutation';
+        return get_class($entity) . 'Mutation';
     }
 
     /**

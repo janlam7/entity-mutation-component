@@ -8,44 +8,30 @@ namespace Functional\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity()
- * @ORM\InheritanceType("JOINED")
- * @ORM\DiscriminatorColumn("type")
- * @ORM\DiscriminatorMap({
- *     1 = "HostingContractMutation",
- *     2 = "DomainContractMutation",
- *     3 = "ContractMutation"
- * })
- */
+#[ORM\Entity]
+#[ORM\InheritanceType('JOINED')]
+#[ORM\DiscriminatorColumn(name: 'type')]
+#[ORM\DiscriminatorMap([
+    1 => HostingContractMutation::class,
+    2 => DomainContractMutation::class,
+    3 => ContractMutation::class,
+])]
 class ContractMutation
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     *
-     * @var int
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private int $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Contract", inversedBy="mutations")
-     * @ORM\JoinColumn()
-     */
-    private $contract;
+    #[ORM\ManyToOne(targetEntity: Contract::class, inversedBy: 'mutations')]
+    #[ORM\JoinColumn]
+    private Contract $contract;
 
-    /**
-     * @ORM\Column(type="string")
-     */
+    #[ORM\Column(type: 'string')]
     private $identifier;
 
-    /**
-     * @ORM\Column(type="integer")
-     *
-     * @var int
-     */
-    private $status;
+    #[ORM\Column(type: 'integer')]
+    private int $status;
 
     /**
      * @param Contract $contract

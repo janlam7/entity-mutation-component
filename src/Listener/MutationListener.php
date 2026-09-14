@@ -83,10 +83,6 @@ class MutationListener
             return $this->save($cached_item, $attribute->getStrategy());
         }
 
-        if (null !== $annotation = $this->resolver->getMutationAnnotation($em, $entity)) {
-            return $this->save($cached_item, $annotation->getStrategy());
-        }
-
         return $this->save($cached_item, false);
     }
 

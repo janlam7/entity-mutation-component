@@ -6,7 +6,7 @@
     "require": {
         "php":                              "^8.3",
         "doctrine/orm":                     "^2.7.4",
-        "hostnet/entity-tracker-component": "^2.3.0"
+        "hostnet/entity-tracker-component": "^3.0.0"
     },
     "require-dev": {
         "hostnet/database-test-lib": "^2.0.2",

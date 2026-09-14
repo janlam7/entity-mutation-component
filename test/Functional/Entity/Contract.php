@@ -9,47 +9,33 @@ namespace Functional\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Hostnet\Component\EntityMutation\Mutation;
+use Hostnet\Component\EntityMutation\Attributes\Mutation;
 use Hostnet\Component\EntityMutation\MutationAwareInterface;
 
-/**
- * @ORM\Entity()
- * @ORM\InheritanceType("JOINED")
- * @ORM\DiscriminatorColumn("type")
- * @ORM\DiscriminatorMap({
- *     1 = "HostingContract",
- *     2 = "DomainContract",
- *     3 = "Contract"
- * })
- * @Mutation(strategy="current")
- */
+#[ORM\Entity]
+#[ORM\InheritanceType('JOINED')]
+#[ORM\DiscriminatorColumn(name: 'type')]
+#[ORM\DiscriminatorMap([1 => HostingContract::class, 2 => DomainContract::class, 3 => Contract::class])]
+#[Mutation(strategy: Mutation::STRATEGY_COPY_CURRENT)]
 class Contract implements MutationAwareInterface
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string")
-     */
+    #[ORM\Column(type: 'string')]
     private $identifier;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private $status;
 
     /**
      * The history of this object.
-     *
-     * @ORM\OneToMany(targetEntity="ContractMutation", mappedBy="contract")
-     * @ORM\OrderBy(value={"id"="DESC"})
-     * @var Collection
      */
-    private $mutations;
+    #[ORM\OneToMany(targetEntity: ContractMutation::class, mappedBy: 'contract')]
+    #[ORM\OrderBy(['id' => 'DESC'])]
+    private Collection $mutations;
 
     /**
      * @param string $identifier

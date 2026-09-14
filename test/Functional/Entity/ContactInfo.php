@@ -8,31 +8,17 @@ namespace Hostnet\Component\EntityMutation\Functional\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Embeddable()
- */
+#[ORM\Embeddable]
 class ContactInfo
 {
-    /**
-     * @ORM\Column(type="string")
-     *
-     * @var string
-     */
-    private $address_line;
+    #[ORM\Column(type: 'string')]
+    private string $address_line;
 
-    /**
-     * @ORM\Column(type="string")
-     *
-     * @var string
-     */
-    private $name;
+    #[ORM\Column(type: 'string')]
+    private string $name;
 
-    /**
-     * @ORM\Column(type="datetime")
-     *
-     * @var \DateTime
-     */
-    private $created_at;
+    #[ORM\Column(type: 'datetime')]
+    private \DateTime $created_at;
 
     /**
      * @param string    $address_line

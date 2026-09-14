@@ -13,7 +13,6 @@ use Hostnet\Component\EntityMutation\Mocked\MockMutationEntity;
 use Hostnet\Component\EntityMutation\Mocked\MockMutationEntityAttribute;
 use Hostnet\Component\EntityMutation\Mocked\MockMutationEntityAttributeMutation;
 use Hostnet\Component\EntityMutation\Mocked\MockMutationEntityMutation;
-use Hostnet\Component\EntityMutation\Mutation as MutationAnnotation;
 use Hostnet\Component\EntityMutation\Resolver\MutationResolverInterface;
 use Hostnet\Component\EntityTracker\Event\EntityChangedEvent;
 use PHPUnit\Framework\TestCase;
@@ -53,13 +52,13 @@ class MutationListenerTest extends TestCase
             ->with($this->em, $current_entity)
             ->willReturn(['id']);
 
-        $annotation = new MutationAnnotation();
+        $attribute = new Mutation();
 
         $this->resolver
             ->expects($this->once())
-            ->method('getMutationAnnotation')
+            ->method('getMutationAttribute')
             ->with($this->em, $current_entity)
-            ->willReturn($annotation);
+            ->willReturn($attribute);
 
         $this->resolver
             ->expects($this->once())
@@ -106,14 +105,14 @@ class MutationListenerTest extends TestCase
             ->with($this->em, $current_entity)
             ->willReturn(['id']);
 
-        $annotation           = new MutationAnnotation();
-        $annotation->strategy = MutationAnnotation::STRATEGY_COPY_CURRENT;
+        $attribute           = new Mutation();
+        $attribute->strategy = Mutation::STRATEGY_COPY_CURRENT;
 
         $this->resolver
             ->expects($this->once())
-            ->method('getMutationAnnotation')
+            ->method('getMutationAttribute')
             ->with($this->em, $current_entity)
-            ->willReturn($annotation);
+            ->willReturn($attribute);
 
         $this->resolver
             ->expects($this->once())
@@ -160,17 +159,17 @@ class MutationListenerTest extends TestCase
             ->with($this->em, $current_entity)
             ->willReturn(['id']);
 
-        $annotation = $this->createMock('Hostnet\Component\EntityMutation\Mutation');
-        $annotation
+        $attribute = $this->createMock('Hostnet\Component\EntityMutation\Attributes\Mutation');
+        $attribute
             ->expects($this->once())
             ->method('getStrategy')
             ->willReturn('phpunit');
 
         $this->resolver
             ->expects($this->once())
-            ->method('getMutationAnnotation')
+            ->method('getMutationAttribute')
             ->with($this->em, $current_entity)
-            ->willReturn($annotation);
+            ->willReturn($attribute);
 
         $event = new EntityChangedEvent($this->em, $current_entity, $original_entity, $mutated_fields);
         $this->expectException(\RuntimeException::class);
@@ -192,17 +191,13 @@ class MutationListenerTest extends TestCase
             ->with($this->em, $current_entity)
             ->willReturn(['id']);
 
-        $annotation = $this->createMock('Hostnet\Component\EntityMutation\Mutation');
-        $annotation
-            ->expects($this->once())
-            ->method('getStrategy')
-            ->willReturn('previous');
+        $attribute = new Mutation();
 
         $this->resolver
             ->expects($this->once())
-            ->method('getMutationAnnotation')
+            ->method('getMutationAttribute')
             ->with($this->em, $current_entity)
-            ->willReturn($annotation);
+            ->willReturn($attribute);
 
         $this->em
             ->expects($this->never())
@@ -227,14 +222,14 @@ class MutationListenerTest extends TestCase
             ->with($this->em, $current_entity)
             ->willReturn([]);
 
-        $annotation           = new MutationAnnotation();
-        $annotation->strategy = MutationAnnotation::STRATEGY_COPY_CURRENT;
+        $attribute           = new Mutation();
+        $attribute->strategy = Mutation::STRATEGY_COPY_CURRENT;
 
         $this->resolver
             ->expects($this->once())
-            ->method('getMutationAnnotation')
+            ->method('getMutationAttribute')
             ->with($this->em, $current_entity)
-            ->willReturn($annotation);
+            ->willReturn($attribute);
 
         $this->em
             ->expects($this->never())
@@ -247,7 +242,7 @@ class MutationListenerTest extends TestCase
         $this->assertCount(0, $current_entity->getMutations());
     }
 
-    public function testOnEntityChangedNoAnnotation(): void
+    public function testOnEntityChangedNoAttribute(): void
     {
         $current_entity  = new MockMutationEntity();
         $original_entity = new MockMutationEntity();
@@ -255,12 +250,6 @@ class MutationListenerTest extends TestCase
         $current_entity->id  = 2;
         $original_entity->id = 1;
         $mutated_fields      = ['id'];
-
-        $this->resolver
-            ->expects($this->once())
-            ->method('getMutationAnnotation')
-            ->with($this->em, $current_entity)
-            ->willReturn(null);
 
         $this->em
             ->expects($this->never())

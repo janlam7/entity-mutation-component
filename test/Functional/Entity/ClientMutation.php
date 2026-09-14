@@ -8,32 +8,20 @@ namespace Hostnet\Component\EntityMutation\Functional\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity()
- */
+#[ORM\Entity]
 class ClientMutation
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     *
-     * @var int
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private int $id;
 
-    /**
-     * @ORM\Embedded(class="ContactInfo")
-     *
-     * @var ContactInfo
-     */
-    private $contact_info;
+    #[ORM\Embedded(class: ContactInfo::class)]
+    private ContactInfo $contact_info;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Client", inversedBy="mutations")
-     * @ORM\JoinColumn()
-     */
-    private $client;
+    #[ORM\ManyToOne(targetEntity: Client::class, inversedBy: 'mutations')]
+    #[ORM\JoinColumn]
+    private Client $client;
 
     /**
      * @param Client $client

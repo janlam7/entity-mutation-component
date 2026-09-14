@@ -6,10 +6,9 @@ declare(strict_types=1);
 
 namespace Hostnet\Component\EntityMutation\Functional;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use Hostnet\Component\DatabaseTest\MysqlPersistentConnection;
@@ -18,7 +17,7 @@ use Hostnet\Component\EntityMutation\Functional\Entity\ContactInfo;
 use Hostnet\Component\EntityMutation\Listener\MutationListener;
 use Hostnet\Component\EntityMutation\Resolver\MutationResolver;
 use Hostnet\Component\EntityTracker\Listener\EntityChangedListener;
-use Hostnet\Component\EntityTracker\Provider\EntityAnnotationMetadataProvider;
+use Hostnet\Component\EntityTracker\Provider\EntityMetadataProvider;
 use Hostnet\Component\EntityTracker\Provider\EntityMutationMetadataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -41,26 +40,24 @@ class EmbeddableTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::$connection  = new MysqlPersistentConnection();
-        $params            = self::$connection->getConnectionParams();
-        $configuration     = Setup::createConfiguration(true);
-        $event_manager     = new EventManager();
-        $annotation_reader = new AnnotationReader();
+        self::$connection = new MysqlPersistentConnection();
+        $params           = self::$connection->getConnectionParams();
+        $configuration    = Setup::createConfiguration(true);
+        $event_manager    = new EventManager();
 
-        $configuration->setMetadataDriverImpl(new AnnotationDriver($annotation_reader, [__DIR__ . '/Entity']));
+        $configuration->setMetadataDriverImpl(new AttributeDriver([__DIR__ . '/Entity']));
 
-        $annotation_metadata_provider = new EntityAnnotationMetadataProvider($annotation_reader);
-        $mutation_metadata_provider   = new EntityMutationMetadataProvider($annotation_reader);
+        $entity_metadata_provider   = new EntityMetadataProvider();
+        $mutation_metadata_provider = new EntityMutationMetadataProvider();
 
         $entity_changed_listener = new EntityChangedListener(
-            $annotation_metadata_provider,
+            $entity_metadata_provider,
             $mutation_metadata_provider
         );
 
-        $mutation_resolver = new MutationResolver($annotation_metadata_provider);
+        $mutation_resolver = new MutationResolver($entity_metadata_provider);
         $mutation_listener = new MutationListener($mutation_resolver);
 
-        $event_manager->addEventListener('prePersist', $entity_changed_listener);
         $event_manager->addEventListener('preFlush', $entity_changed_listener);
         $event_manager->addEventListener('entityChanged', $mutation_listener);
 

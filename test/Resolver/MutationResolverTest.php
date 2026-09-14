@@ -9,8 +9,7 @@ namespace Hostnet\Component\EntityMutation\Resolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Hostnet\Component\EntityMutation\Attributes\Mutation;
-use Hostnet\Component\EntityMutation\Mutation as MutationAnnotation;
-use Hostnet\Component\EntityTracker\Provider\EntityAnnotationMetadataProvider;
+use Hostnet\Component\EntityTracker\Provider\EntityMetadataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -25,7 +24,7 @@ class MutationResolverTest extends TestCase
     public function setUp(): void
     {
         $this->provider = $this
-            ->getMockBuilder(EntityAnnotationMetadataProvider::class)
+            ->getMockBuilder(EntityMetadataProvider::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -37,35 +36,10 @@ class MutationResolverTest extends TestCase
         $this->resolver = new MutationResolver($this->provider);
     }
 
-    public function testGetMutationAnnotation(): void
-    {
-        $entity = new \stdClass();
-
-        $this->provider
-            ->expects($this->once())
-            ->method('getAnnotationFromEntity')
-            ->with($this->em, $entity, MutationAnnotation::class);
-
-        $this->resolver->getMutationAnnotation($this->em, $entity);
-    }
-
     public function testGetMutationClassName(): void
     {
-        $entity            = new \stdClass();
-        $annotation        = new MutationAnnotation();
-        $annotation->class = 'Phpunit';
-
-        $this->provider
-            ->expects($this->exactly(3))
-            ->method('getAnnotationFromEntity')
-            ->with($this->em, $entity, 'Hostnet\Component\EntityMutation\Mutation')
-            ->willReturnOnConsecutiveCalls(null, new MutationAnnotation(), $annotation);
-
-        // Without annotation, assuming the attribute is in use
+        $entity = new \stdClass();
         $this->assertEquals('stdClassMutation', $this->resolver->getMutationClassName($this->em, $entity));
-
-        $this->assertEquals('stdClassMutation', $this->resolver->getMutationClassName($this->em, $entity));
-        $this->assertEquals('Phpunit', $this->resolver->getMutationClassName($this->em, $entity));
     }
 
     public function testGetMutatedFields(): void
@@ -73,11 +47,6 @@ class MutationResolverTest extends TestCase
         $entity        = new \stdClass();
         $metadata      = $this->createMock(ClassMetadata::class);
         $metadata_meta = $this->createMock(ClassMetadata::class);
-
-        $this->provider
-            ->expects($this->once())
-            ->method('getAnnotationFromEntity')
-            ->willReturnOnConsecutiveCalls(new MutationAnnotation());
 
         $metadata->expects($this->once())->method('getFieldNames')->willReturn(['id']);
         $metadata_meta->expects($this->once())->method('getFieldNames')->willReturn(['id']);

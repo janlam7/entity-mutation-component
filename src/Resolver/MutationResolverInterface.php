@@ -8,18 +8,9 @@ namespace Hostnet\Component\EntityMutation\Resolver;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Hostnet\Component\EntityMutation\Attributes\Mutation;
-use Hostnet\Component\EntityMutation\Mutation as MutationAnnotation;
 
 interface MutationResolverInterface
 {
-    /**
-     * Return the mutation annotation
-     *
-     *
-     * @deprecated Please use the attribute instead.
-     */
-    public function getMutationAnnotation(EntityManagerInterface $em, $entity): ?MutationAnnotation;
-
     public function getMutationAttribute(EntityManagerInterface $em, $entity): ?Mutation;
 
     /**

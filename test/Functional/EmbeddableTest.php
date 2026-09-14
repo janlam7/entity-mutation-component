@@ -7,10 +7,11 @@ declare(strict_types=1);
 namespace Hostnet\Component\EntityMutation\Functional;
 
 use Doctrine\Common\EventManager;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Schema\DefaultSchemaManagerFactory;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Driver\AttributeDriver;
+use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\ORM\Tools\Setup;
 use Hostnet\Component\DatabaseTest\MysqlPersistentConnection;
 use Hostnet\Component\EntityMutation\Functional\Entity\Client;
 use Hostnet\Component\EntityMutation\Functional\Entity\ContactInfo;
@@ -42,10 +43,15 @@ class EmbeddableTest extends TestCase
     {
         self::$connection = new MysqlPersistentConnection();
         $params           = self::$connection->getConnectionParams();
-        $configuration    = Setup::createConfiguration(true);
         $event_manager    = new EventManager();
 
-        $configuration->setMetadataDriverImpl(new AttributeDriver([__DIR__ . '/Entity']));
+        $configuration = ORMSetup::createAttributeMetadataConfiguration(
+            paths: [__DIR__ . '/Entity'],
+            isDevMode: true,
+            reportFieldsWhereDeclared: true,
+        );
+        $configuration->setLazyGhostObjectEnabled(true);
+        $configuration->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
 
         $entity_metadata_provider   = new EntityMetadataProvider();
         $mutation_metadata_provider = new EntityMutationMetadataProvider();
@@ -61,7 +67,9 @@ class EmbeddableTest extends TestCase
         $event_manager->addEventListener('preFlush', $entity_changed_listener);
         $event_manager->addEventListener('entityChanged', $mutation_listener);
 
-        self::$entity_manager = EntityManager::create($params, $configuration, $event_manager);
+        $dbal_connection = DriverManager::getConnection($params, $configuration, $event_manager);
+
+        self::$entity_manager = new EntityManager($dbal_connection, $configuration, $event_manager);
 
         $metadata    = self::$entity_manager->getMetadataFactory()->getAllMetadata();
         $schema_tool = new SchemaTool(self::$entity_manager);
@@ -77,7 +85,7 @@ class EmbeddableTest extends TestCase
         $client = new Client($info);
 
         self::$entity_manager->persist($client);
-        self::$entity_manager->flush($client);
+        self::$entity_manager->flush();
 
         /** @var Client $client */
         if ($clear_after_insert) {
@@ -95,7 +103,7 @@ class EmbeddableTest extends TestCase
             $client->setContactInfo($info);
         }
 
-        self::$entity_manager->flush($client);
+        self::$entity_manager->flush();
         unset($info);
 
         if ($clear_after_update) {

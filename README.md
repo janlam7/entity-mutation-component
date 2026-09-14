@@ -21,7 +21,7 @@ This component lets you automatically store mutations based on two different str
 
 Requirements
 ------------
-The Entity Mutation Component requires a minimum of php 7.3 and runs on Doctrine2. For specific requirements, please check [composer.json](../master/composer.json).
+The Entity Mutation Component requires a minimum of PHP 8.3 and Doctrine ORM 2.7. For specific requirements, please check [composer.json](../master/composer.json).
 
 Installation
 ------------
@@ -40,13 +40,13 @@ Documentation
 How does it work?
 -----------------
 
-It works by putting the `@Mutation` annotation on your Entity and registering the listener on the entityChanged event, assuming you have already configured the [Entity Tracker Component](https://github.com/hostnet/entity-tracker-component/#setup).
+It works by putting the `#[Mutation]` attribute on your Entity and registering the listener on the entityChanged event, assuming you have already configured the [Entity Tracker Component](https://github.com/hostnet/entity-tracker-component/#setup).
 
 For a usage example, follow the setup below.
 
 Setup
 -----
- - You have to add `@Mutation` to your Entity
+ - You have to add `#[Mutation]` to your Entity
  - You have to create your Mutation Entity
  - Optionally you can add the `MutationAwareInterface` if your Entity knows about its own mutations
 
@@ -61,112 +61,100 @@ It might look a bit complicated to set up, but it's pretty much setting up the t
 
 ```php
 
+use Hostnet\Component\EntityMutation\Listener\MutationListener;
 use Hostnet\Component\EntityMutation\Resolver\MutationResolver;
 use Hostnet\Component\EntityTracker\Listener\EntityChangedListener;
-use Hostnet\Component\EntityTracker\Provider\EntityAnnotationMetadataProvider;
+use Hostnet\Component\EntityTracker\Provider\EntityMetadataProvider;
 use Hostnet\Component\EntityTracker\Provider\EntityMutationMetadataProvider;
 
 /* @var $em \Doctrine\ORM\EntityManager */
 $event_manager = $em->getEventManager();
 
-// default doctrine annotation reader
-$annotation_reader = new AnnotationReader();
-
 // setup required providers
-$annotation_metadata_provider = new EntityAnnotationMetadataProvider($annotation_reader);
-$mutation_metadata_provider   = new EntityMutationMetadataProvider($annotation_reader);
+$entity_metadata_provider   = new EntityMetadataProvider();
+$mutation_metadata_provider = new EntityMutationMetadataProvider();
 
-// pre flush event listener that uses the @Mutation annotation
+// preFlush event listener that uses the #[Mutation] attribute
 $entity_changed_listener = new EntityChangedListener(
-    $annotation_metadata_provider,
+    $entity_metadata_provider,
     $mutation_metadata_provider
 );
 
-// the resolver is used to find the correct annotation, which
+// the resolver is used to find the #[Mutation] attribute, which
 // fields are considered to be tracked and stored as mutation
 // and which entity represents your Mutation entity.
-$mutation_resolver = new MutationResolver($annotation_metadata_provider);
+$mutation_resolver = new MutationResolver($entity_metadata_provider);
 
 // creating the mutation listener
 $mutation_listener = new MutationListener($mutation_resolver);
 
 // register the events
-$event_manager->addEventListener('prePersist', $entity_changed_listener);
 $event_manager->addEventListener('preFlush', $entity_changed_listener);
 $event_manager->addEventListener('entityChanged', $mutation_listener);
 
 ```
 
 #### Configuring the Entity
-All we have to do now is put the `@Mutation` annotation on our Entity. The annotation has 2 options:
+All we have to do now is put the `#[Mutation]` attribute on our Entity. The attribute has 1 option:
  - strategy; This will determine if the current state or the previous state is stored in the Mutation
- - class; the full namespace to your mutation class. By default it's the current class name suffixed with Mutation (i.e. `Acme\MyEntity` would be `Acme\MyEntityMutation` by default).
+
+The Mutation class is always the entity's own class name suffixed with `Mutation` (i.e. `Acme\MyEntity`'s mutations are stored via `Acme\MyEntityMutation`) — this is no longer configurable.
 
 Additionally you can configure your entity to be MutationAware, this is optional however.
 
 ```php
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
-use Hostnet\Component\EntityMutation\Mutation;
+use Hostnet\Component\EntityMutation\Attributes\Mutation;
 use Hostnet\Component\EntityMutation\MutationAwareInterface;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="users")
- * @Mutation(
- *     class    = "MyUserEntityMutation",
- *     strategy = "previous"
- * )
- * The above values are equal to the defaults. They are only
- * here to show how you can use them outside of this example
- */
+// The strategy below is the default, only shown for illustration.
+#[ORM\Entity]
+#[ORM\Table(name: 'users')]
+#[Mutation(strategy: Mutation::STRATEGY_COPY_PREVIOUS)]
 class MyUserEntity implements MutationAwareInterface
 {
     ...
     private $id;
 
-    /**
-     * @ORM\...
-     */
-    private $city;
+    #[ORM\Column(...)]
+    private string $city;
 
-    /**
-     * @ORM\...
-     */
-    private $name;
+    #[ORM\Column(...)]
+    private string $name;
 
-    /**
-     * @ORM\OneToMany...
-     * @var ArrayCollection
-     */
-    private $mutations;
+    #[ORM\OneToMany(...)]
+    private Collection $mutations;
 
-    public function setName($name) { ... }
-    public function getName() { ... }
+    public function setName(string $name): void { ... }
+    public function getName(): string { ... }
 
-    public function addMutation($element)
+    #[\Override]
+    public function addMutation(object $mutation): void
     {
-        $this->mutations->add($element);
+        $this->mutations->add($mutation);
     }
 
-    public function getMutations()
+    #[\Override]
+    public function getMutations(): array
     {
-        return $this->mutations;
+        return $this->mutations->toArray();
     }
 
     /**
      * Used to get the last mutation stored, you might want to change
      * it to return the one before that if your strategy is current.
      */
-    public function getPreviousMutation()
+    #[\Override]
+    public function getPreviousMutation(): ?object
     {
         $criteria = (new Criteria())
             ->orderBy(['id' => Criteria::DESC])
             ->setMaxResults(1);
 
-        return $this->mutations->matching($criteria)->current() ? : null;
+        return $this->mutations->matching($criteria)->current() ?: null;
     }
 }
 
@@ -185,22 +173,19 @@ This is done so you have full control over the what fields and how you want to s
 
 use Doctrine\ORM\Mapping as ORM;
 
+#[ORM\Entity]
 class MyUserEntityMutation
 {
     ...
 
-    /**
-     * @ORM\ManyToOne(targetEntity="MyUserEntity", inversedBy="mutations")
-     */
-    private $user;
+    #[ORM\ManyToOne(targetEntity: MyUserEntity::class, inversedBy: 'mutations')]
+    private MyUserEntity $user;
 
-    /**
-     * @ORM\...
-     */
-    private $name;
+    #[ORM\Column(...)]
+    private string $name;
 
-    public function setName($name) { ... }
-    public function getName() { ... }
+    public function setName(string $name): void { ... }
+    public function getName(): string { ... }
 
     public function __construct(MyUserEntity $user, MyUserEntity $original_data)
     {

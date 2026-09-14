@@ -21,9 +21,6 @@ class Client implements MutationAwareInterface
     #[ORM\Column(type: 'integer')]
     private int $id;
 
-    #[ORM\Embedded(class: ContactInfo::class)]
-    private ContactInfo $contact_info;
-
     /**
      * The history of this object.
      */
@@ -31,13 +28,11 @@ class Client implements MutationAwareInterface
     #[ORM\OrderBy(['id' => 'DESC'])]
     private Collection $mutations;
 
-    /**
-     * @param ContactInfo $contact_info
-     */
-    public function __construct(ContactInfo $contact_info)
-    {
-        $this->contact_info = $contact_info;
-        $this->mutations    = new ArrayCollection();
+    public function __construct(
+        #[ORM\Embedded(class: ContactInfo::class)]
+        private ContactInfo $contact_info,
+    ) {
+        $this->mutations = new ArrayCollection();
     }
 
     public function getContactInfo(): ContactInfo
@@ -45,29 +40,20 @@ class Client implements MutationAwareInterface
         return $this->contact_info;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
 
-    /**
-     * @param ContactInfo $contact_info
-     * @return $this
-     */
-    public function setContactInfo(ContactInfo $contact_info)
+    public function setContactInfo(ContactInfo $contact_info): static
     {
         $this->contact_info = $contact_info;
 
         return $this;
     }
 
-    /**
-     * @param ClientMutation $mutation
-     */
-    public function addMutation($mutation): void
+    #[\Override]
+    public function addMutation(object $mutation): void
     {
         // $this->mutations is sorted by id descending, so we should add new
         // items at the start of the Collection. Doctrine collections don't
@@ -79,18 +65,15 @@ class Client implements MutationAwareInterface
     /**
      * @return ClientMutation[]
      */
+    #[\Override]
     public function getMutations(): array
     {
         $mutations = $this->mutations->toArray();
-        usort($mutations, function (ClientMutation $ma, ClientMutation $mb) {
-            if ($ma->getId() === $mb->getId()) {
-                return 0;
-            }
-            return ($ma->getId() > $mb->getId()) ? -1 : 1;
-        });
+        usort($mutations, fn(ClientMutation $ma, ClientMutation $mb) => $mb->getId() <=> $ma->getId());
         return $mutations;
     }
 
+    #[\Override]
     public function getPreviousMutation(): ClientMutation
     {
         throw new \BadMethodCallException(__METHOD__ . ' is not implemented.');

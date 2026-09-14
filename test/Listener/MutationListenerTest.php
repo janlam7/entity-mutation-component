@@ -15,6 +15,7 @@ use Hostnet\Component\EntityMutation\Mocked\MockMutationEntityAttributeMutation;
 use Hostnet\Component\EntityMutation\Mocked\MockMutationEntityMutation;
 use Hostnet\Component\EntityMutation\Resolver\MutationResolverInterface;
 use Hostnet\Component\EntityTracker\Event\EntityChangedEvent;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,9 +23,9 @@ use PHPUnit\Framework\TestCase;
  */
 class MutationListenerTest extends TestCase
 {
-    private $resolver;
-    private $listener;
-    private $em;
+    private MutationResolverInterface&MockObject $resolver;
+    private MutationListener $listener;
+    private EntityManagerInterface&MockObject $em;
 
     public function setUp(): void
     {

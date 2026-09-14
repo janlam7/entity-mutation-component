@@ -19,18 +19,12 @@ class ClientMutation
     #[ORM\Embedded(class: ContactInfo::class)]
     private ContactInfo $contact_info;
 
-    #[ORM\ManyToOne(targetEntity: Client::class, inversedBy: 'mutations')]
-    #[ORM\JoinColumn]
-    private Client $client;
-
-    /**
-     * @param Client $client
-     * @param Client $orginal
-     */
-    public function __construct(Client $client, Client $orginal)
-    {
-        $this->client = $client;
-
+    public function __construct(
+        #[ORM\ManyToOne(targetEntity: Client::class, inversedBy: 'mutations')]
+        #[ORM\JoinColumn]
+        private Client $client,
+        Client $orginal,
+    ) {
         // Clone the embeddable so we keep the original state in case it mutates.
         // Note: This *must* be a deep clone.
         $this->contact_info = clone $orginal->getContactInfo();

@@ -15,10 +15,11 @@ class Mutation extends Tracked
         public string $strategy = self::STRATEGY_COPY_PREVIOUS,
     ) {
     }
-        /**
-         * The Previous values will be stored in the mutation table. This is the
-         * default strategy.
-         */
+
+    /**
+     * The Previous values will be stored in the mutation table. This is the
+     * default strategy.
+     */
     public const string STRATEGY_COPY_PREVIOUS = 'previous';
 
     /**

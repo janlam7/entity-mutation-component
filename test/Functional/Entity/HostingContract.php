@@ -13,19 +13,13 @@ use Hostnet\Component\EntityMutation\Attributes\Mutation;
 #[Mutation(strategy: Mutation::STRATEGY_COPY_CURRENT)]
 class HostingContract extends Contract
 {
-    #[ORM\Column(type: 'string')]
-    private $service;
-
-    /**
-     * @param string $identifier
-     * @param int    $status
-     * @param string $service
-     */
-    public function __construct($identifier, $status, $service)
-    {
+    public function __construct(
+        string $identifier,
+        int $status,
+        #[ORM\Column(type: 'string')]
+        private string $service,
+    ) {
         parent::__construct($identifier, $status);
-
-        $this->service = $service;
     }
 
     public function getService(): string

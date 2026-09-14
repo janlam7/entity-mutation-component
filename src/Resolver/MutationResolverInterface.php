@@ -11,17 +11,17 @@ use Hostnet\Component\EntityMutation\Attributes\Mutation;
 
 interface MutationResolverInterface
 {
-    public function getMutationAttribute(EntityManagerInterface $em, $entity): ?Mutation;
+    public function getMutationAttribute(EntityManagerInterface $em, object $entity): ?Mutation;
 
     /**
      * Return the mutation class name
      */
-    public function getMutationClassName(EntityManagerInterface $em, $entity): string;
+    public function getMutationClassName(EntityManagerInterface $em, object $entity): string;
 
     /**
      * Return list of mutatable fields
      *
      * @return string[]
      */
-    public function getMutatableFields(EntityManagerInterface $em, $entity): array;
+    public function getMutatableFields(EntityManagerInterface $em, object $entity): array;
 }

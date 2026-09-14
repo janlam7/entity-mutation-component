@@ -12,16 +12,14 @@ use Doctrine\ORM\Mapping as ORM;
 class HostingContractMutation extends ContractMutation
 {
     #[ORM\Column(type: 'string')]
-    private $service;
+    private string $service;
 
     public function getService(): string
     {
         return $this->service;
     }
 
-    /**
-     * @param Contract $original
-     */
+    #[\Override]
     protected function absorb(Contract $original): void
     {
         if (!($original instanceof HostingContract)) {

@@ -23,23 +23,18 @@ class ContractMutation
     #[ORM\Column(type: 'integer')]
     private int $id;
 
-    #[ORM\ManyToOne(targetEntity: Contract::class, inversedBy: 'mutations')]
-    #[ORM\JoinColumn]
-    private Contract $contract;
-
     #[ORM\Column(type: 'string')]
-    private $identifier;
+    private string $identifier;
 
     #[ORM\Column(type: 'integer')]
     private int $status;
 
-    /**
-     * @param Contract $contract
-     * @param Contract $original
-     */
-    public function __construct(Contract $contract, Contract $original)
-    {
-        $this->contract = $contract;
+    public function __construct(
+        #[ORM\ManyToOne(targetEntity: Contract::class, inversedBy: 'mutations')]
+        #[ORM\JoinColumn]
+        private Contract $contract,
+        Contract $original,
+    ) {
         $this->absorb($original);
     }
 
@@ -63,9 +58,6 @@ class ContractMutation
         return $this->status;
     }
 
-    /**
-     * @param Contract $original
-     */
     protected function absorb(Contract $original): void
     {
         $this->identifier = $original->getIdentifier();

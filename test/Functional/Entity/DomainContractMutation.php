@@ -12,16 +12,14 @@ use Doctrine\ORM\Mapping as ORM;
 class DomainContractMutation extends ContractMutation
 {
     #[ORM\Column(type: 'string')]
-    private $domain;
+    private string $domain;
 
     public function getDomain(): string
     {
         return $this->domain;
     }
 
-    /**
-     * @param Contract $original
-     */
+    #[\Override]
     protected function absorb(Contract $original): void
     {
         if (!($original instanceof DomainContract)) {

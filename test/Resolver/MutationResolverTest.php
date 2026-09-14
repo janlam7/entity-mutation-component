@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Hostnet\Component\EntityMutation\Attributes\Mutation;
 use Hostnet\Component\EntityTracker\Provider\EntityMetadataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -17,9 +18,9 @@ use PHPUnit\Framework\TestCase;
  */
 class MutationResolverTest extends TestCase
 {
-    private $provider;
-    private $resolver;
-    private $em;
+    private EntityMetadataProvider&MockObject $provider;
+    private MutationResolver $resolver;
+    private EntityManagerInterface&MockObject $em;
 
     public function setUp(): void
     {

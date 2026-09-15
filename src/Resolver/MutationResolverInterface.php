@@ -8,29 +8,20 @@ namespace Hostnet\Component\EntityMutation\Resolver;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Hostnet\Component\EntityMutation\Attributes\Mutation;
-use Hostnet\Component\EntityMutation\Mutation as MutationAnnotation;
 
 interface MutationResolverInterface
 {
-    /**
-     * Return the mutation annotation
-     *
-     *
-     * @deprecated Please use the attribute instead.
-     */
-    public function getMutationAnnotation(EntityManagerInterface $em, $entity): ?MutationAnnotation;
-
-    public function getMutationAttribute(EntityManagerInterface $em, $entity): ?Mutation;
+    public function getMutationAttribute(EntityManagerInterface $em, object $entity): ?Mutation;
 
     /**
      * Return the mutation class name
      */
-    public function getMutationClassName(EntityManagerInterface $em, $entity): string;
+    public function getMutationClassName(EntityManagerInterface $em, object $entity): string;
 
     /**
      * Return list of mutatable fields
      *
      * @return string[]
      */
-    public function getMutatableFields(EntityManagerInterface $em, $entity): array;
+    public function getMutatableFields(EntityManagerInterface $em, object $entity): array;
 }

@@ -8,24 +8,18 @@ namespace Functional\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity()
- */
+#[ORM\Entity]
 class HostingContractMutation extends ContractMutation
 {
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $service;
+    #[ORM\Column(type: 'string')]
+    private string $service;
 
     public function getService(): string
     {
         return $this->service;
     }
 
-    /**
-     * @param Contract $original
-     */
+    #[\Override]
     protected function absorb(Contract $original): void
     {
         if (!($original instanceof HostingContract)) {

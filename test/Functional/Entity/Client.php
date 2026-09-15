@@ -9,47 +9,30 @@ namespace Hostnet\Component\EntityMutation\Functional\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Hostnet\Component\EntityMutation\Mutation;
+use Hostnet\Component\EntityMutation\Attributes\Mutation;
 use Hostnet\Component\EntityMutation\MutationAwareInterface;
 
-/**
- * @ORM\Entity()
- * @Mutation(strategy="current")
- */
+#[ORM\Entity]
+#[Mutation(strategy: Mutation::STRATEGY_COPY_CURRENT)]
 class Client implements MutationAwareInterface
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     *
-     * @var int
-     */
-    private $id;
-
-    /**
-     * @ORM\Embedded(class="ContactInfo")
-     *
-     * @var ContactInfo
-     */
-    private $contact_info;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private int $id;
 
     /**
      * The history of this object.
-     *
-     * @ORM\OneToMany(targetEntity="ClientMutation", mappedBy="client")
-     * @ORM\OrderBy(value={"id"="DESC"})
-     * @var Collection
      */
-    private $mutations;
+    #[ORM\OneToMany(targetEntity: ClientMutation::class, mappedBy: 'client')]
+    #[ORM\OrderBy(['id' => 'DESC'])]
+    private Collection $mutations;
 
-    /**
-     * @param ContactInfo $contact_info
-     */
-    public function __construct(ContactInfo $contact_info)
-    {
-        $this->contact_info = $contact_info;
-        $this->mutations    = new ArrayCollection();
+    public function __construct(
+        #[ORM\Embedded(class: ContactInfo::class)]
+        private ContactInfo $contact_info,
+    ) {
+        $this->mutations = new ArrayCollection();
     }
 
     public function getContactInfo(): ContactInfo
@@ -57,29 +40,20 @@ class Client implements MutationAwareInterface
         return $this->contact_info;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
 
-    /**
-     * @param ContactInfo $contact_info
-     * @return $this
-     */
-    public function setContactInfo(ContactInfo $contact_info)
+    public function setContactInfo(ContactInfo $contact_info): static
     {
         $this->contact_info = $contact_info;
 
         return $this;
     }
 
-    /**
-     * @param ClientMutation $mutation
-     */
-    public function addMutation($mutation): void
+    #[\Override]
+    public function addMutation(object $mutation): void
     {
         // $this->mutations is sorted by id descending, so we should add new
         // items at the start of the Collection. Doctrine collections don't
@@ -91,18 +65,15 @@ class Client implements MutationAwareInterface
     /**
      * @return ClientMutation[]
      */
+    #[\Override]
     public function getMutations(): array
     {
         $mutations = $this->mutations->toArray();
-        usort($mutations, function (ClientMutation $ma, ClientMutation $mb) {
-            if ($ma->getId() === $mb->getId()) {
-                return 0;
-            }
-            return ($ma->getId() > $mb->getId()) ? -1 : 1;
-        });
+        usort($mutations, fn(ClientMutation $ma, ClientMutation $mb) => $mb->getId() <=> $ma->getId());
         return $mutations;
     }
 
+    #[\Override]
     public function getPreviousMutation(): ClientMutation
     {
         throw new \BadMethodCallException(__METHOD__ . ' is not implemented.');

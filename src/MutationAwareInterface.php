@@ -6,23 +6,14 @@ declare(strict_types=1);
 
 namespace Hostnet\Component\EntityMutation;
 
-/**
- * TODO: add typehints on next BC break, removing doctrine/annotations
- */
 interface MutationAwareInterface
 {
-    /**
-     * @param mixed $mutation
-     */
-    public function addMutation($mutation);
+    public function addMutation(object $mutation): void;
 
     /**
-     * @return array of mutations
+     * @return object[]
      */
-    public function getMutations();
+    public function getMutations(): array;
 
-    /**
-     * @return mixed previous mutation object
-     */
-    public function getPreviousMutation();
+    public function getPreviousMutation(): ?object;
 }

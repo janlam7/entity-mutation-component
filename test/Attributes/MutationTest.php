@@ -23,9 +23,8 @@ class MutationTest extends TestCase
 
     /**
      * @dataProvider getStrategyExceptionProvider
-     * @param mixed $strategy
      */
-    public function testGetStrategyException($strategy): void
+    public function testGetStrategyException(string $strategy): void
     {
         $mutation           = new Mutation();
         $mutation->strategy = $strategy;

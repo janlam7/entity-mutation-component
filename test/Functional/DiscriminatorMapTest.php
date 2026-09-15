@@ -6,12 +6,12 @@ declare(strict_types=1);
 
 namespace Hostnet\Component\EntityMutation\Functional;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Schema\DefaultSchemaManagerFactory;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\ORM\Tools\Setup;
 use Functional\Entity\Contract;
 use Functional\Entity\ContractMutation;
 use Functional\Entity\DomainContract;
@@ -22,7 +22,7 @@ use Hostnet\Component\DatabaseTest\MysqlPersistentConnection;
 use Hostnet\Component\EntityMutation\Listener\MutationListener;
 use Hostnet\Component\EntityMutation\Resolver\MutationResolver;
 use Hostnet\Component\EntityTracker\Listener\EntityChangedListener;
-use Hostnet\Component\EntityTracker\Provider\EntityAnnotationMetadataProvider;
+use Hostnet\Component\EntityTracker\Provider\EntityMetadataProvider;
 use Hostnet\Component\EntityTracker\Provider\EntityMutationMetadataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -45,30 +45,34 @@ class DiscriminatorMapTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::$connection  = new MysqlPersistentConnection();
-        $params            = self::$connection->getConnectionParams();
-        $configuration     = Setup::createConfiguration(true);
-        $event_manager     = new EventManager();
-        $annotation_reader = new AnnotationReader();
+        self::$connection = new MysqlPersistentConnection();
+        $params           = self::$connection->getConnectionParams();
+        $event_manager    = new EventManager();
 
-        $configuration->setMetadataDriverImpl(new AnnotationDriver($annotation_reader, [__DIR__ . '/Entity']));
+        $configuration = ORMSetup::createAttributeMetadataConfiguration(
+            paths: [__DIR__ . '/Entity'],
+            isDevMode: true,
+            reportFieldsWhereDeclared: true,
+        );
+        $configuration->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
 
-        $annotation_metadata_provider = new EntityAnnotationMetadataProvider($annotation_reader);
-        $mutation_metadata_provider   = new EntityMutationMetadataProvider($annotation_reader);
+        $entity_metadat_provider    = new EntityMetadataProvider();
+        $mutation_metadata_provider = new EntityMutationMetadataProvider();
 
         $entity_changed_listener = new EntityChangedListener(
-            $annotation_metadata_provider,
+            $entity_metadat_provider,
             $mutation_metadata_provider
         );
 
-        $mutation_resolver = new MutationResolver($annotation_metadata_provider);
+        $mutation_resolver = new MutationResolver($entity_metadat_provider);
         $mutation_listener = new MutationListener($mutation_resolver);
 
-        $event_manager->addEventListener('prePersist', $entity_changed_listener);
         $event_manager->addEventListener('preFlush', $entity_changed_listener);
         $event_manager->addEventListener('entityChanged', $mutation_listener);
 
-        self::$entity_manager = EntityManager::create($params, $configuration, $event_manager);
+        $dbal_connection = DriverManager::getConnection($params, $configuration, $event_manager);
+
+        self::$entity_manager = new EntityManager($dbal_connection, $configuration, $event_manager);
 
         $metadata    = self::$entity_manager->getMetadataFactory()->getAllMetadata();
         $schema_tool = new SchemaTool(self::$entity_manager);

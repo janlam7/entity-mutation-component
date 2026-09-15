@@ -6,54 +6,28 @@ declare(strict_types=1);
 
 namespace Hostnet\Component\EntityMutation\Mocked;
 
-use Hostnet\Component\EntityMutation\Mutation;
 use Hostnet\Component\EntityMutation\MutationAwareInterface;
 
-/**
- * @Mutation()
- */
 class MockMutationEntity implements MutationAwareInterface
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id",type="integer")
-     */
-    public $id;
+    public ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="MockEntity", inversedBy="mutations")
-     * @ORM\JoinColumn(name="id", referencedColumnName="id")
-     */
-    public $mutations = [];
+    public array $mutations = [];
 
-    /**
-     * @ORM\OneToOne(targetEntity="MockEntity")
-     * @ORM\JoinColumn(name="parent", referencedColumnName="id")
-     * @var unknown
-     */
-    public $parent;
-
-    /**
-     * @see \Hostnet\Component\EntityMutation\MutationAwareInterface::addMutation()
-     */
-    public function addMutation($mutation): void
+    #[\Override]
+    public function addMutation(object $mutation): void
     {
         $this->mutations[] = $mutation;
     }
 
-    /**
-     * @see \Hostnet\Component\EntityMutation\MutationAwareInterface::getMutations()
-     */
-    public function getMutations()
+    #[\Override]
+    public function getMutations(): array
     {
         return $this->mutations;
     }
 
-    /**
-     * @see \Hostnet\Component\EntityMutation\MutationAwareInterface::getPreviousMutation()
-     */
-    public function getPreviousMutation()
+    #[\Override]
+    public function getPreviousMutation(): ?object
     {
         return current($this->mutations) ?: null;
     }

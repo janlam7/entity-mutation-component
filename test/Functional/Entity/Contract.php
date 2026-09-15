@@ -9,57 +9,35 @@ namespace Functional\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Hostnet\Component\EntityMutation\Mutation;
+use Hostnet\Component\EntityMutation\Attributes\Mutation;
 use Hostnet\Component\EntityMutation\MutationAwareInterface;
 
-/**
- * @ORM\Entity()
- * @ORM\InheritanceType("JOINED")
- * @ORM\DiscriminatorColumn("type")
- * @ORM\DiscriminatorMap({
- *     1 = "HostingContract",
- *     2 = "DomainContract",
- *     3 = "Contract"
- * })
- * @Mutation(strategy="current")
- */
+#[ORM\Entity]
+#[ORM\InheritanceType('JOINED')]
+#[ORM\DiscriminatorColumn(name: 'type')]
+#[ORM\DiscriminatorMap([1 => HostingContract::class, 2 => DomainContract::class, 3 => Contract::class])]
+#[Mutation(strategy: Mutation::STRATEGY_COPY_CURRENT)]
 class Contract implements MutationAwareInterface
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
-
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $identifier;
-
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $status;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private int $id;
 
     /**
      * The history of this object.
-     *
-     * @ORM\OneToMany(targetEntity="ContractMutation", mappedBy="contract")
-     * @ORM\OrderBy(value={"id"="DESC"})
-     * @var Collection
      */
-    private $mutations;
+    #[ORM\OneToMany(targetEntity: ContractMutation::class, mappedBy: 'contract')]
+    #[ORM\OrderBy(['id' => 'DESC'])]
+    private Collection $mutations;
 
-    /**
-     * @param string $identifier
-     * @param int    $status
-     */
-    public function __construct($identifier, $status)
-    {
-        $this->identifier = $identifier;
-        $this->status     = $status;
-        $this->mutations  = new ArrayCollection();
+    public function __construct(
+        #[ORM\Column(type: 'string')]
+        private string $identifier,
+        #[ORM\Column(type: 'integer')]
+        private int $status,
+    ) {
+        $this->mutations = new ArrayCollection();
     }
 
     public function getId(): int
@@ -77,10 +55,8 @@ class Contract implements MutationAwareInterface
         return $this->status;
     }
 
-    /**
-     * @param DomainContractMutation $mutation
-     */
-    public function addMutation($mutation): void
+    #[\Override]
+    public function addMutation(object $mutation): void
     {
         // $this->mutations is sorted by id descending, so we should add new
         // items at the start of the Collection. Doctrine collections don't
@@ -92,18 +68,15 @@ class Contract implements MutationAwareInterface
     /**
      * @return ContractMutation[]
      */
+    #[\Override]
     public function getMutations(): array
     {
         $mutations = $this->mutations->toArray();
-        usort($mutations, function (ContractMutation $ma, ContractMutation $mb) {
-            if ($ma->getId() === $mb->getId()) {
-                return 0;
-            }
-            return ($ma->getId() > $mb->getId()) ? -1 : 1;
-        });
+        usort($mutations, fn(ContractMutation $ma, ContractMutation $mb) => $mb->getId() <=> $ma->getId());
         return $mutations;
     }
 
+    #[\Override]
     public function getPreviousMutation(): DomainContractMutation
     {
         throw new \BadMethodCallException(__METHOD__ . ' is not implemented.');

@@ -8,42 +8,17 @@ namespace Hostnet\Component\EntityMutation\Functional\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Embeddable()
- */
+#[ORM\Embeddable]
 class ContactInfo
 {
-    /**
-     * @ORM\Column(type="string")
-     *
-     * @var string
-     */
-    private $address_line;
-
-    /**
-     * @ORM\Column(type="string")
-     *
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @ORM\Column(type="datetime")
-     *
-     * @var \DateTime
-     */
-    private $created_at;
-
-    /**
-     * @param string    $address_line
-     * @param string    $name
-     * @param \DateTime $created_at
-     */
-    public function __construct($address_line, $name, \DateTime $created_at)
-    {
-        $this->address_line = $address_line;
-        $this->name         = $name;
-        $this->created_at   = $created_at;
+    public function __construct(
+        #[ORM\Column(type: 'string')]
+        private string $address_line,
+        #[ORM\Column(type: 'string')]
+        private string $name,
+        #[ORM\Column(type: 'datetime')]
+        private \DateTime $created_at,
+    ) {
     }
 
     public function getAddressLine(): string
@@ -61,30 +36,21 @@ class ContactInfo
         return $this->created_at;
     }
 
-    /**
-     * @param \DateTime $created_at
-     */
-    public function setCreatedAt($created_at): ContactInfo
+    public function setCreatedAt(\DateTime $created_at): static
     {
         $this->created_at = $created_at;
 
         return $this;
     }
 
-    /**
-     * @param string $name
-     */
-    public function setName($name): ContactInfo
+    public function setName(string $name): static
     {
         $this->name = $name;
 
         return $this;
     }
 
-    /**
-     * @param string $address_line
-     */
-    public function setAddressLine($address_line): ContactInfo
+    public function setAddressLine(string $address_line): static
     {
         $this->address_line = $address_line;
 

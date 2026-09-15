@@ -8,24 +8,18 @@ namespace Functional\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity()
- */
+#[ORM\Entity]
 class DomainContractMutation extends ContractMutation
 {
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $domain;
+    #[ORM\Column(type: 'string')]
+    private string $domain;
 
     public function getDomain(): string
     {
         return $this->domain;
     }
 
-    /**
-     * @param Contract $original
-     */
+    #[\Override]
     protected function absorb(Contract $original): void
     {
         if (!($original instanceof DomainContract)) {

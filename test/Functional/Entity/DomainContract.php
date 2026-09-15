@@ -7,29 +7,19 @@ declare(strict_types=1);
 namespace Functional\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Hostnet\Component\EntityMutation\Mutation;
+use Hostnet\Component\EntityMutation\Attributes\Mutation;
 
-/**
- * @ORM\Entity()
- * @Mutation(strategy="current")
- */
+#[ORM\Entity]
+#[Mutation(strategy: Mutation::STRATEGY_COPY_CURRENT)]
 class DomainContract extends Contract
 {
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $domain;
-
-    /**
-     * @param string $identifier
-     * @param int    $status
-     * @param string $domain
-     */
-    public function __construct($identifier, $status, $domain)
-    {
+    public function __construct(
+        string $identifier,
+        int $status,
+        #[ORM\Column(type: 'string')]
+        private string $domain,
+    ) {
         parent::__construct($identifier, $status);
-
-        $this->domain = $domain;
     }
 
     public function getDomain(): string

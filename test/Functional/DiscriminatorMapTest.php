@@ -54,7 +54,6 @@ class DiscriminatorMapTest extends TestCase
             isDevMode: true,
             reportFieldsWhereDeclared: true,
         );
-        $configuration->setLazyGhostObjectEnabled(true);
         $configuration->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
 
         $entity_metadat_provider    = new EntityMetadataProvider();

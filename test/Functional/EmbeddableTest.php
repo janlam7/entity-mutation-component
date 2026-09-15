@@ -50,7 +50,6 @@ class EmbeddableTest extends TestCase
             isDevMode: true,
             reportFieldsWhereDeclared: true,
         );
-        $configuration->setLazyGhostObjectEnabled(true);
         $configuration->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
 
         $entity_metadata_provider   = new EntityMetadataProvider();
